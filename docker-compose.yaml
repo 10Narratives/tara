@@ -1,0 +1,8 @@
+services:
+  faas-agent:
+    build:
+      context: .
+      dockerfile: docker/faas-agent.dockerfile
+    container_name: faas-agent
+    volumes:
+      - ./configs/faas-agent.example.yaml:/etc/faas/config.yaml:ro
