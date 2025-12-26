@@ -1,0 +1,3 @@
+transport:
+  grpc:
+    address: 0.0.0.0:55055

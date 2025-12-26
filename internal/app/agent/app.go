@@ -6,7 +6,7 @@ import (
 	"net"
 	"net/http"
 
-	funcrepo "github.com/10Narratives/faas/internal/repository/functions"
+	funcrepo "github.com/10Narratives/faas/internal/repositories/minio/functions"
 	"github.com/10Narratives/faas/internal/services/runtime"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -74,10 +74,10 @@ func NewApp(cfg *Config, log *zap.Logger) (*App, error) {
 func (a *App) Startup(ctx context.Context) error {
 	errGroup, ctx := errgroup.WithContext(ctx)
 
-	a.log.Info("start running function")
-	result, _ := a.runtime.RunFunction(ctx, "hello.py")
-	a.log.Info("result", zap.ByteString("result", result))
-	a.log.Info("stop running function")
+	// a.log.Info("start running function")
+	// result, _ := a.runtime.RunFunction(ctx, "hello.py")
+	// a.log.Info("result", zap.ByteString("result", result))
+	// a.log.Info("stop running function")
 
 	return errGroup.Wait()
 }
