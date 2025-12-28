@@ -7,7 +7,9 @@ tool github.com/vektra/mockery/v3
 require (
 	cloud.google.com/go/longrunning v0.7.0
 	github.com/containerd/errdefs v1.0.0
+	github.com/envoyproxy/protoc-gen-validate v1.2.1
 	github.com/google/uuid v1.6.0
+	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.3
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/minio/minio-go/v7 v7.0.97
