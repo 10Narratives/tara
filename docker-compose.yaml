@@ -8,13 +8,9 @@ services:
       - ./configs/faas-gateway.example.yaml:/etc/faas/config.yaml:ro
     restart: unless-stopped
     depends_on:
-      statedb:
-        condition: service_healthy
-      object-storage:
-        condition: service_healthy
-      task-queue:
+      unified-storage:
         condition: service_started
-      task-queue-health:
+      unified-storage-health:
         condition: service_completed_successfully
 
   faas-agent:
@@ -26,67 +22,14 @@ services:
       - ./configs/faas-agent.example.yaml:/etc/faas/config.yaml:ro
     restart: unless-stopped
     depends_on:
-      statedb:
-        condition: service_healthy
-      object-storage:
-        condition: service_healthy
-      task-queue:
+      unified-storage:
         condition: service_started
-      task-queue-health:
+      unified-storage-health:
         condition: service_completed_successfully
 
-  statedb:
-    image: postgres:17-alpine
-    container_name: faas-statedb
-    volumes:
-      - statedb-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=statedb
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d statedb"]
-      interval: 5s
-      timeout: 5s
-      retries: 10
-
-  statedb-monitoring:
-    image: dbeaver/cloudbeaver:latest
-    container_name: faas-statedb-monitoring
-    restart: unless-stopped
-    ports:
-      - "8978:8978"
-    volumes:
-      - statedb-monitoring-data:/opt/cloudbeaver/workspace
-    depends_on:
-      statedb:
-        condition: service_healthy
-
-  object-storage:
-    image: minio/minio:latest
-    container_name: faas-object-storage
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - object-storage-data:/data
-    environment:
-      - MINIO_ROOT_USER=minio_admin
-      - MINIO_ROOT_PASSWORD=minio_admin
-    command: server /data --console-address ":9001"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  task-queue:
+  unified-storage:
     image: nats:latest
-    container_name: faas-task-queue
+    container_name: faas-unified-storage
     ports:
       - "4222:4222"
       - "8222:8222"
@@ -95,23 +38,20 @@ services:
       -sd /data
       -m 8222
     volumes:
-      - task-queue-data:/data
+      - unified-storage-data:/data
     restart: unless-stopped
 
-  task-queue-health:
+  unified-storage-health:
     image: curlimages/curl:8.5.0
     depends_on:
-      task-queue:
+      unified-storage:
         condition: service_started
     command: >
-      sh -c 'until curl -fsS "http://task-queue:8222/healthz?js-enabled-only=true" >/dev/null; do sleep 1; done'
+      sh -c 'until curl -fsS "http://unified-storage:8222/healthz?js-enabled-only=true" >/dev/null; do sleep 1; done'
     restart: "no"
 
 volumes:
-  statedb-data:
-  statedb-monitoring-data:
-  object-storage-data:
-  task-queue-data:
+  unified-storage-data:
 
 networks:
   default:
