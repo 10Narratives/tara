@@ -2,118 +2,203 @@ package funccmd
 
 import (
 	"archive/zip"
-	"bufio"
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"time"
 
-	funcdomain "github.com/10Narratives/faas/internal/domain/functions"
-	functionspb "github.com/10Narratives/faas/pkg/faas/functions/v1"
-
+	functionspb "github.com/10Narratives/faas/pkg/faas/v1/functions"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
-	"gopkg.in/yaml.v3"
 )
 
-func NewUploadFunctionCommand() *cobra.Command {
-	var manifestPath string
-	var outPath string
-	var addr string
+func NewUploadFunctionCmd() *cobra.Command {
+	var (
+		functionName string
+		srcDir       string
+		gatewayAddr  string
+		format       string
+		tls          bool
+		caFile       string
+		timeout      time.Duration
+	)
 
 	cmd := &cobra.Command{
 		Use:   "upload",
-		Short: "Archive sources from manifest upload.source_dir",
+		Short: "Archive user code and upload it",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			absManifestPath, err := filepath.Abs(manifestPath)
+			if functionName == "" {
+				return fmt.Errorf("--name is required")
+			}
+			if srcDir == "" {
+				return fmt.Errorf("--path is required")
+			}
+
+			absSrc, err := filepath.Abs(srcDir)
 			if err != nil {
-				return fmt.Errorf("abs manifest path: %w", err)
+				return err
 			}
 
-			b, err := os.ReadFile(absManifestPath)
-			if err != nil {
-				return fmt.Errorf("read manifest: %w", err)
-			}
+			tmpDir := os.TempDir()
+			archivePath := filepath.Join(tmpDir, fmt.Sprintf("faas-%d.zip", time.Now().UnixNano()))
 
-			var m funcdomain.Manifest
-			if err := yaml.Unmarshal(b, &m); err != nil {
-				return fmt.Errorf("parse manifest yaml: %w", err)
-			}
-
-			if m.Upload.SourceDir == "" {
-				return fmt.Errorf("manifest upload.source_dir is empty")
-			}
-
-			manifestDir := filepath.Dir(absManifestPath)
-
-			sourceDir := m.Upload.SourceDir
-			if !filepath.IsAbs(sourceDir) {
-				sourceDir = filepath.Join(manifestDir, sourceDir)
-			}
-
-			if outPath == "" {
-				switch {
-				case m.Name != "":
-					outPath = m.Name + ".zip"
-				default:
-					outPath = "archive.zip"
+			switch format {
+			case "zip", "":
+				if err := zipDir(absSrc, archivePath); err != nil {
+					return fmt.Errorf("zipDir: %w", err)
 				}
+			default:
+				return fmt.Errorf("unsupported --format=%q (implemented: zip)", format)
 			}
+			defer os.Remove(archivePath)
 
-			if err := zipDir(sourceDir, outPath); err != nil {
-				return err
-			}
-
-			resp, err := uploadZip(cmd.Context(), addr, m.Name, outPath)
+			sha, size, err := fileSHA256AndSize(archivePath)
 			if err != nil {
 				return err
 			}
 
-			fmt.Println("response", resp)
+			ctx, cancel := context.WithTimeout(cmd.Context(), timeout)
+			defer cancel()
 
+			conn, err := dialGateway(ctx, gatewayAddr, tls, caFile)
+			if err != nil {
+				return err
+			}
+			defer conn.Close()
+
+			client := functionspb.NewFunctionsClient(conn)
+			fn, err := uploadArchive(ctx, client, functionName, archivePath, functionspb.UploadFunctionMetadata_FORMAT_ZIP)
+			if err != nil {
+				return err
+			}
+
+			fmt.Fprintf(cmd.OutOrStdout(),
+				"uploaded: name=%s, local_archive_size=%d, local_sha256=%s, bundle_bucket=%s, bundle_object_key=%s\n",
+				fn.GetName(), size, sha, fn.GetSourceBundle().GetBucket(), fn.GetSourceBundle().GetObjectKey(),
+			)
 			return nil
 		},
 	}
 
-	cmd.Flags().StringVarP(&manifestPath, "manifest", "m", "manifest.yaml", "Path to manifest YAML")
-	cmd.Flags().StringVarP(&outPath, "out", "o", "", "Output archive path (default: <name>.zip)")
-	cmd.Flags().StringVarP(&addr, "addr", "a", "", "Address of faas gateway")
+	cmd.Flags().StringVar(&functionName, "name", "", "Function name, e.g. functions/my-func")
+	cmd.Flags().StringVar(&srcDir, "path", "", "Path to user code directory")
+	cmd.Flags().StringVar(&gatewayAddr, "gateway", "127.0.0.1:55055", "Gateway gRPC address host:port")
+	cmd.Flags().StringVar(&format, "format", "zip", "Archive format: zip")
+	cmd.Flags().BoolVar(&tls, "tls", false, "Use TLS")
+	cmd.Flags().StringVar(&caFile, "tls-ca", "", "CA file (PEM), optional")
+	cmd.Flags().DurationVar(&timeout, "timeout", 2*time.Minute, "Overall timeout")
 
 	return cmd
 }
 
-func zipDir(sourceDir, outZip string) error {
-	srcAbs, err := filepath.Abs(sourceDir)
-	if err != nil {
-		return fmt.Errorf("abs source dir: %w", err)
+func dialGateway(ctx context.Context, addr string, useTLS bool, caFile string) (*grpc.ClientConn, error) {
+	var creds credentials.TransportCredentials
+	if useTLS {
+		if caFile != "" {
+			c, err := credentials.NewClientTLSFromFile(caFile, "")
+			if err != nil {
+				return nil, err
+			}
+			creds = c
+		} else {
+			creds = credentials.NewTLS(nil)
+		}
+	} else {
+		creds = insecure.NewCredentials()
 	}
 
-	f, err := os.Create(outZip)
+	return grpc.DialContext(ctx, addr, grpc.WithTransportCredentials(creds))
+}
+
+func uploadArchive(
+	ctx context.Context,
+	client functionspb.FunctionsClient,
+	functionName string,
+	archivePath string,
+	format functionspb.UploadFunctionMetadata_Format,
+) (*functionspb.Function, error) {
+	stream, err := client.UploadFunction(ctx)
 	if err != nil {
-		return fmt.Errorf("create zip: %w", err)
+		return nil, err
+	}
+
+	if err := stream.Send(&functionspb.UploadFunctionRequest{
+		Payload: &functionspb.UploadFunctionRequest_UploadFunctionMetadata{
+			UploadFunctionMetadata: &functionspb.UploadFunctionMetadata{
+				FunctionName: functionName,
+				Format:       format,
+			},
+		},
+	}); err != nil {
+		return nil, err
+	}
+
+	f, err := os.Open(archivePath)
+	if err != nil {
+		return nil, err
 	}
 	defer f.Close()
 
-	zw := zip.NewWriter(f)
+	const chunkSize = 1 << 20
+	buf := make([]byte, chunkSize)
+
+	for {
+		n, readErr := f.Read(buf)
+		if n > 0 {
+			if err := stream.Send(&functionspb.UploadFunctionRequest{
+				Payload: &functionspb.UploadFunctionRequest_UploadFunctionData{
+					UploadFunctionData: &functionspb.UploadFunctionData{
+						Data: buf[:n],
+					},
+				},
+			}); err != nil {
+				return nil, err
+			}
+		}
+		if readErr == io.EOF {
+			break
+		}
+		if readErr != nil {
+			return nil, readErr
+		}
+	}
+
+	// 3) server response
+	return stream.CloseAndRecv()
+}
+
+func zipDir(srcDir, dstZip string) error {
+	out, err := os.Create(dstZip)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	zw := zip.NewWriter(out)
 	defer zw.Close()
 
-	return filepath.WalkDir(srcAbs, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
+	return filepath.WalkDir(srcDir, func(path string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
 		}
 		if d.IsDir() {
 			return nil
 		}
 
-		info, err := d.Info()
+		rel, err := filepath.Rel(srcDir, path)
 		if err != nil {
 			return err
 		}
+		rel = filepath.ToSlash(rel)
 
-		rel, err := filepath.Rel(srcAbs, path)
+		info, err := d.Info()
 		if err != nil {
 			return err
 		}
@@ -122,7 +207,7 @@ func zipDir(sourceDir, outZip string) error {
 		if err != nil {
 			return err
 		}
-		h.Name = filepath.ToSlash(rel)
+		h.Name = rel
 		h.Method = zip.Deflate
 
 		w, err := zw.CreateHeader(h)
@@ -141,76 +226,17 @@ func zipDir(sourceDir, outZip string) error {
 	})
 }
 
-func uploadZip(ctx context.Context, addr, functionName, zipPath string) (*functionspb.UploadFunctionSourceResponse, error) {
-	st, err := os.Stat(zipPath)
+func fileSHA256AndSize(path string) (shaHex string, size int64, err error) {
+	f, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("stat zip: %w", err)
-	}
-
-	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return nil, fmt.Errorf("grpc dial: %w", err)
-	}
-	defer conn.Close()
-
-	client := functionspb.NewFunctionServiceClient(conn)
-
-	stream, err := client.UploadFunctionSource(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("open upload stream: %w", err)
-	}
-
-	md := &functionspb.UploadFunctionSourceRequest{
-		Payload: &functionspb.UploadFunctionSourceRequest_Metadata{
-			Metadata: &functionspb.UploadFunctionSourceMetadata{
-				FunctionName: functionName,
-				SourceBundleMetadata: &functionspb.SourceBundleMetadata{
-					Type:     functionspb.SourceBundleType_SOURCE_BUNDLE_TYPE_ZIP,
-					FileName: filepath.Base(zipPath),
-					Size:     uint64(st.Size()),
-				},
-			},
-		},
-	}
-	if err := stream.Send(md); err != nil {
-		return nil, fmt.Errorf("send metadata: %w", err)
-	}
-
-	f, err := os.Open(zipPath)
-	if err != nil {
-		return nil, fmt.Errorf("open zip: %w", err)
+		return "", 0, err
 	}
 	defer f.Close()
 
-	const chunkSize = 64 * 1024
-	r := bufio.NewReader(f)
-	buf := make([]byte, chunkSize)
-
-	for {
-		n, err := r.Read(buf)
-		if err == io.EOF {
-			break
-		}
-		if err != nil {
-			return nil, fmt.Errorf("read zip chunk: %w", err)
-		}
-
-		req := &functionspb.UploadFunctionSourceRequest{
-			Payload: &functionspb.UploadFunctionSourceRequest_Chunk{
-				Chunk: &functionspb.UploadChunk{
-					Data: buf[:n],
-				},
-			},
-		}
-
-		if err := stream.Send(req); err != nil {
-			return nil, fmt.Errorf("send chunk: %w", err)
-		}
-	}
-
-	res, err := stream.CloseAndRecv()
+	h := sha256.New()
+	n, err := io.Copy(h, f)
 	if err != nil {
-		return nil, fmt.Errorf("close and recv: %w", err)
+		return "", 0, err
 	}
-	return res, nil
+	return hex.EncodeToString(h.Sum(nil)), n, nil
 }

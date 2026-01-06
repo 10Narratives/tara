@@ -6,12 +6,15 @@ import (
 
 func NewFunctionsGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "functions",
+		Use:   "fn",
 		Short: "Commands for managing serverless functions",
 	}
 
 	cmd.AddCommand(
-		NewUploadFunctionCommand(),
+		NewUploadFunctionCmd(),
+		NewGetFunctionCmd(),
+		NewListFunctionsCmd(),
+		NewDeleteFunctionCmd(),
 	)
 
 	return cmd

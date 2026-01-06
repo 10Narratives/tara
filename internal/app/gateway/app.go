@@ -5,19 +5,19 @@ import (
 	"fmt"
 
 	grpcsrv "github.com/10Narratives/faas/internal/app/components/grpc/server"
-	miniocomp "github.com/10Narratives/faas/internal/app/components/minio"
 	natscomp "github.com/10Narratives/faas/internal/app/components/nats"
-	pgcomp "github.com/10Narratives/faas/internal/app/components/postgres"
+	funcrepo "github.com/10Narratives/faas/internal/repositories/functions"
 	funcsrv "github.com/10Narratives/faas/internal/services/functions"
 	funcapi "github.com/10Narratives/faas/internal/transport/grpc/api/functions"
-	healthapi "github.com/10Narratives/faas/internal/transport/grpc/api/health"
-	reflectapi "github.com/10Narratives/faas/internal/transport/grpc/api/reflect"
+	opapi "github.com/10Narratives/faas/internal/transport/grpc/api/operations"
+	healthapi "github.com/10Narratives/faas/internal/transport/grpc/dev/health"
+	reflectapi "github.com/10Narratives/faas/internal/transport/grpc/dev/reflect"
+
 	"github.com/10Narratives/faas/internal/transport/grpc/interceptors/logging"
 	"github.com/10Narratives/faas/internal/transport/grpc/interceptors/recovery"
 	"github.com/10Narratives/faas/internal/transport/grpc/interceptors/validator"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/minio/minio-go/v7"
 	"github.com/nats-io/nats.go"
+	"github.com/nats-io/nats.go/jetstream"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -27,39 +27,35 @@ type App struct {
 	cfg *Config
 	log *zap.Logger
 
-	stateDB       *pgxpool.Pool
-	objectStorage *minio.Client
-	taskQueue     *nats.Conn
-	grpcServer    *grpcsrv.Component
+	unifiedStorage *nats.Conn
+	grpcServer     *grpcsrv.Component
 }
 
 func NewApp(cfg *Config, log *zap.Logger) (*App, error) {
-	stateDB, err := pgcomp.NewConnection(context.Background(), cfg.Databases.StateDB.DSN)
+	unifiedStorage, err := natscomp.NewConnection(cfg.UnifiedStorage.URL)
 	if err != nil {
-		return nil, fmt.Errorf("cannot connect to state database: %w", err)
+		return nil, fmt.Errorf("cannot connect to unified storage: %w", err)
 	}
-	log.Info("connection to state database established")
+	log.Info("connection to unified storage established")
 
-	objectStorage, err := miniocomp.NewConnection(context.Background(), cfg.Databases.ObjectStorage.Endpoint,
-		cfg.Databases.ObjectStorage.AccessKey, cfg.Databases.ObjectStorage.SecretKey, false)
-
+	js, err := jetstream.New(unifiedStorage)
 	if err != nil {
-		return nil, fmt.Errorf("cannot connect to object storage: %w", err)
-	}
-	log.Info("connection to object storage established")
-
-	taskQueue, err := natscomp.NewConnection(cfg.Transport.TaskQueue.URL)
-	if err != nil {
-		return nil, fmt.Errorf("cannot connect to task queue: %w", err)
-	}
-	log.Info("connection to task queue established")
-
-	functionService, err := funcsrv.NewService()
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("cannot create jet stream: %w", err)
 	}
 
-	grpcServer := grpcsrv.NewComponent(cfg.Transport.Grpc.Address,
+	funcMetaRepo, err := funcrepo.NewMetadataRepository(context.Background(), js, "functions-meta")
+	if err != nil {
+		return nil, fmt.Errorf("cannot create functions meta repo: %w", err)
+	}
+
+	funcObjRepo, err := funcrepo.NewObjectRepository(context.Background(), js, "functions")
+	if err != nil {
+		return nil, fmt.Errorf("cannot create functions object repo: %w", err)
+	}
+
+	funcService := funcsrv.NewService(funcMetaRepo, funcObjRepo, nil)
+
+	grpcServer := grpcsrv.NewComponent(cfg.Server.Grpc.Address,
 		grpcsrv.WithServerOptions(
 			grpc.ChainUnaryInterceptor(
 				recovery.NewUnaryServerInterceptor(),
@@ -75,17 +71,16 @@ func NewApp(cfg *Config, log *zap.Logger) (*App, error) {
 		grpcsrv.WithServiceRegistration(
 			healthapi.NewRegistration(),
 			reflectapi.NewRegistration(),
-			funcapi.NewRegistration(functionService),
+			opapi.NewRegistration(nil),
+			funcapi.NewRegistration(funcService),
 		),
 	)
 
 	return &App{
-		cfg:           cfg,
-		log:           log,
-		grpcServer:    grpcServer,
-		stateDB:       stateDB,
-		objectStorage: objectStorage,
-		taskQueue:     taskQueue,
+		cfg:            cfg,
+		log:            log,
+		grpcServer:     grpcServer,
+		unifiedStorage: unifiedStorage,
 	}, nil
 }
 
@@ -113,18 +108,10 @@ func (a *App) Shutdown(ctx context.Context) error {
 	})
 
 	errGroup.Go(func() error {
-		a.log.Debug("closing connection to state database")
-		defer a.log.Info("connection to state database closed")
-
-		a.stateDB.Close()
-		return nil
-	})
-
-	errGroup.Go(func() error {
 		a.log.Debug("closing connection to task queue")
 		defer a.log.Info("connection to task queue closed")
 
-		a.taskQueue.Close()
+		a.unifiedStorage.Close()
 		return nil
 	})
 

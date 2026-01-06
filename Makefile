@@ -1,7 +1,6 @@
 
 generate:
 	buf generate
-	mockery
 
 build: generate
 	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o build/faas-agent  ./cmd/faas-agent/
@@ -20,9 +19,3 @@ ps:
 
 clean:
 	docker compose down -v --remove-orphans
-
-migrate-up:
-	migrate -source file://./schema/statedb/migrations -database "postgres://postgres:postgres@localhost:5432/statedb?sslmode=disable" up
-
-migrate-down:
-	migrate -source file://./schema/statedb/migrations -database "postgres://postgres:postgres@localhost:5432/statedb?sslmode=disable" down
