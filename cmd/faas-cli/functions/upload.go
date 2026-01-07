@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 	"time"
 
-	functionspb "github.com/10Narratives/faas/pkg/faas/v1/functions"
+	faaspb "github.com/10Narratives/faas/pkg/faas/v1"
 	"github.com/spf13/cobra"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
@@ -73,8 +73,8 @@ func NewUploadFunctionCmd() *cobra.Command {
 			}
 			defer conn.Close()
 
-			client := functionspb.NewFunctionsClient(conn)
-			fn, err := uploadArchive(ctx, client, functionName, archivePath, functionspb.UploadFunctionMetadata_FORMAT_ZIP)
+			client := faaspb.NewFunctionsClient(conn)
+			fn, err := uploadArchive(ctx, client, functionName, archivePath, faaspb.UploadFunctionMetadata_FORMAT_ZIP)
 			if err != nil {
 				return err
 			}
@@ -119,19 +119,19 @@ func dialGateway(ctx context.Context, addr string, useTLS bool, caFile string) (
 
 func uploadArchive(
 	ctx context.Context,
-	client functionspb.FunctionsClient,
+	client faaspb.FunctionsClient,
 	functionName string,
 	archivePath string,
-	format functionspb.UploadFunctionMetadata_Format,
-) (*functionspb.Function, error) {
+	format faaspb.UploadFunctionMetadata_Format,
+) (*faaspb.Function, error) {
 	stream, err := client.UploadFunction(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := stream.Send(&functionspb.UploadFunctionRequest{
-		Payload: &functionspb.UploadFunctionRequest_UploadFunctionMetadata{
-			UploadFunctionMetadata: &functionspb.UploadFunctionMetadata{
+	if err := stream.Send(&faaspb.UploadFunctionRequest{
+		Payload: &faaspb.UploadFunctionRequest_UploadFunctionMetadata{
+			UploadFunctionMetadata: &faaspb.UploadFunctionMetadata{
 				FunctionName: functionName,
 				Format:       format,
 			},
@@ -152,9 +152,9 @@ func uploadArchive(
 	for {
 		n, readErr := f.Read(buf)
 		if n > 0 {
-			if err := stream.Send(&functionspb.UploadFunctionRequest{
-				Payload: &functionspb.UploadFunctionRequest_UploadFunctionData{
-					UploadFunctionData: &functionspb.UploadFunctionData{
+			if err := stream.Send(&faaspb.UploadFunctionRequest{
+				Payload: &faaspb.UploadFunctionRequest_UploadFunctionData{
+					UploadFunctionData: &faaspb.UploadFunctionData{
 						Data: buf[:n],
 					},
 				},

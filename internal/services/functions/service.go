@@ -6,9 +6,7 @@ import (
 	"io"
 	"time"
 
-	"cloud.google.com/go/longrunning"
 	funcdomain "github.com/10Narratives/faas/internal/domains/functions"
-	opdomain "github.com/10Narratives/faas/internal/domains/operations"
 	"github.com/google/uuid"
 )
 
@@ -25,26 +23,18 @@ type FunctionObjectRepository interface {
 	DeleteBundle(ctx context.Context, bundle *funcdomain.SourceBundle) error
 }
 
-type OperationRepository interface {
-	CreateOperation(ctx context.Context, op *longrunning.Operation) (opdomain.OperationName, error)
-	opdomain.OperationGetter
-}
-
 type Service struct {
 	funcMetaRepo FunctionMetadataRepository
 	funcObjRepo  FunctionObjectRepository
-	opRepo       OperationRepository
 }
 
 func NewService(
 	funcMetaRepo FunctionMetadataRepository,
 	funcObjRepo FunctionObjectRepository,
-	opRepo OperationRepository,
 ) *Service {
 	return &Service{
 		funcMetaRepo: funcMetaRepo,
 		funcObjRepo:  funcObjRepo,
-		opRepo:       opRepo,
 	}
 }
 
@@ -70,24 +60,7 @@ func (s *Service) DeleteFunction(ctx context.Context, args *funcdomain.DeleteFun
 }
 
 func (s *Service) ExecuteFunction(ctx context.Context, args *funcdomain.ExecuteFunctionArgs) (*funcdomain.ExecuteFunctionResult, error) {
-	if args == nil {
-		return nil, funcdomain.ErrInvalidArgument
-	}
-
-	got, err := s.funcMetaRepo.GetFunction(ctx, &funcdomain.GetFunctionArgs{Name: args.Name})
-	if err != nil {
-		return nil, err
-	}
-	if got == nil || got.Function == nil {
-		return nil, funcdomain.ErrFunctionNotFound
-	}
-
-	opName, err := s.opRepo.CreateOperation(ctx, &longrunning.Operation{})
-	if err != nil {
-		return nil, err
-	}
-
-	return &funcdomain.ExecuteFunctionResult{OperationName: string(opName)}, nil
+	panic("unimplemented")
 }
 
 func (s *Service) GetFunction(ctx context.Context, args *funcdomain.GetFunctionArgs) (*funcdomain.GetFunctionResult, error) {

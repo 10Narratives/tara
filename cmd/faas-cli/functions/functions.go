@@ -6,7 +6,7 @@ import (
 
 func NewFunctionsGroup() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:   "fn",
+		Use:   "funcs",
 		Short: "Commands for managing serverless functions",
 	}
 

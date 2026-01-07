@@ -8,9 +8,9 @@ import (
 
 	funcapi "github.com/10Narratives/faas/internal/transport/grpc/api/functions"
 	"github.com/10Narratives/faas/internal/transport/grpc/api/functions/mocks"
+	faaspb "github.com/10Narratives/faas/pkg/faas/v1"
 
 	funcdomain "github.com/10Narratives/faas/internal/domains/functions"
-	functionspb "github.com/10Narratives/faas/pkg/faas/v1/functions"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/mock"
@@ -25,15 +25,15 @@ import (
 type fakeUploadStream struct {
 	ctx context.Context
 
-	reqs []*functionspb.UploadFunctionRequest
+	reqs []*faaspb.UploadFunctionRequest
 	i    int
 
 	sendCalled bool
-	sent       *functionspb.Function
+	sent       *faaspb.Function
 	sendErr    error
 }
 
-func (s *fakeUploadStream) Recv() (*functionspb.UploadFunctionRequest, error) {
+func (s *fakeUploadStream) Recv() (*faaspb.UploadFunctionRequest, error) {
 	if s.i >= len(s.reqs) {
 		return nil, io.EOF
 	}
@@ -42,7 +42,7 @@ func (s *fakeUploadStream) Recv() (*functionspb.UploadFunctionRequest, error) {
 	return r, nil
 }
 
-func (s *fakeUploadStream) SendAndClose(res *functionspb.Function) error {
+func (s *fakeUploadStream) SendAndClose(res *faaspb.Function) error {
 	s.sendCalled = true
 	s.sent = res
 	return s.sendErr
@@ -81,10 +81,10 @@ func TestUploadFunction_FirstMessageNotMetadata(t *testing.T) {
 
 	stream := &fakeUploadStream{
 		ctx: context.Background(),
-		reqs: []*functionspb.UploadFunctionRequest{
+		reqs: []*faaspb.UploadFunctionRequest{
 			{
-				Payload: &functionspb.UploadFunctionRequest_UploadFunctionData{
-					UploadFunctionData: &functionspb.UploadFunctionData{Data: []byte("x")},
+				Payload: &faaspb.UploadFunctionRequest_UploadFunctionData{
+					UploadFunctionData: &faaspb.UploadFunctionData{Data: []byte("x")},
 				},
 			},
 		},
@@ -104,12 +104,12 @@ func TestUploadFunction_InvalidName(t *testing.T) {
 
 	stream := &fakeUploadStream{
 		ctx: context.Background(),
-		reqs: []*functionspb.UploadFunctionRequest{
+		reqs: []*faaspb.UploadFunctionRequest{
 			{
-				Payload: &functionspb.UploadFunctionRequest_UploadFunctionMetadata{
-					UploadFunctionMetadata: &functionspb.UploadFunctionMetadata{
+				Payload: &faaspb.UploadFunctionRequest_UploadFunctionMetadata{
+					UploadFunctionMetadata: &faaspb.UploadFunctionMetadata{
 						FunctionName: "bad-name", // not functions/{...}
-						Format:       functionspb.UploadFunctionMetadata_FORMAT_ZIP,
+						Format:       faaspb.UploadFunctionMetadata_FORMAT_ZIP,
 					},
 				},
 			},
@@ -145,20 +145,20 @@ func TestUploadFunction_MetadataTwice(t *testing.T) {
 
 	stream := &fakeUploadStream{
 		ctx: context.Background(),
-		reqs: []*functionspb.UploadFunctionRequest{
+		reqs: []*faaspb.UploadFunctionRequest{
 			{
-				Payload: &functionspb.UploadFunctionRequest_UploadFunctionMetadata{
-					UploadFunctionMetadata: &functionspb.UploadFunctionMetadata{
+				Payload: &faaspb.UploadFunctionRequest_UploadFunctionMetadata{
+					UploadFunctionMetadata: &faaspb.UploadFunctionMetadata{
 						FunctionName: "functions/foo",
-						Format:       functionspb.UploadFunctionMetadata_FORMAT_ZIP,
+						Format:       faaspb.UploadFunctionMetadata_FORMAT_ZIP,
 					},
 				},
 			},
 			{
-				Payload: &functionspb.UploadFunctionRequest_UploadFunctionMetadata{
-					UploadFunctionMetadata: &functionspb.UploadFunctionMetadata{
+				Payload: &faaspb.UploadFunctionRequest_UploadFunctionMetadata{
+					UploadFunctionMetadata: &faaspb.UploadFunctionMetadata{
 						FunctionName: "functions/foo",
-						Format:       functionspb.UploadFunctionMetadata_FORMAT_ZIP,
+						Format:       faaspb.UploadFunctionMetadata_FORMAT_ZIP,
 					},
 				},
 			},
@@ -209,23 +209,23 @@ func TestUploadFunction_Success_StreamsBodyToDomain(t *testing.T) {
 
 	stream := &fakeUploadStream{
 		ctx: context.Background(),
-		reqs: []*functionspb.UploadFunctionRequest{
+		reqs: []*faaspb.UploadFunctionRequest{
 			{
-				Payload: &functionspb.UploadFunctionRequest_UploadFunctionMetadata{
-					UploadFunctionMetadata: &functionspb.UploadFunctionMetadata{
+				Payload: &faaspb.UploadFunctionRequest_UploadFunctionMetadata{
+					UploadFunctionMetadata: &faaspb.UploadFunctionMetadata{
 						FunctionName: "functions/foo",
-						Format:       functionspb.UploadFunctionMetadata_FORMAT_ZIP,
+						Format:       faaspb.UploadFunctionMetadata_FORMAT_ZIP,
 					},
 				},
 			},
 			{
-				Payload: &functionspb.UploadFunctionRequest_UploadFunctionData{
-					UploadFunctionData: &functionspb.UploadFunctionData{Data: []byte("hello ")},
+				Payload: &faaspb.UploadFunctionRequest_UploadFunctionData{
+					UploadFunctionData: &faaspb.UploadFunctionData{Data: []byte("hello ")},
 				},
 			},
 			{
-				Payload: &functionspb.UploadFunctionRequest_UploadFunctionData{
-					UploadFunctionData: &functionspb.UploadFunctionData{Data: []byte("world")},
+				Payload: &faaspb.UploadFunctionRequest_UploadFunctionData{
+					UploadFunctionData: &faaspb.UploadFunctionData{Data: []byte("world")},
 				},
 			},
 		},
@@ -259,18 +259,18 @@ func TestUploadFunction_DomainReturnsAlreadyExists(t *testing.T) {
 
 	stream := &fakeUploadStream{
 		ctx: context.Background(),
-		reqs: []*functionspb.UploadFunctionRequest{
+		reqs: []*faaspb.UploadFunctionRequest{
 			{
-				Payload: &functionspb.UploadFunctionRequest_UploadFunctionMetadata{
-					UploadFunctionMetadata: &functionspb.UploadFunctionMetadata{
+				Payload: &faaspb.UploadFunctionRequest_UploadFunctionMetadata{
+					UploadFunctionMetadata: &faaspb.UploadFunctionMetadata{
 						FunctionName: "functions/foo",
-						Format:       functionspb.UploadFunctionMetadata_FORMAT_ZIP,
+						Format:       faaspb.UploadFunctionMetadata_FORMAT_ZIP,
 					},
 				},
 			},
 			{
-				Payload: &functionspb.UploadFunctionRequest_UploadFunctionData{
-					UploadFunctionData: &functionspb.UploadFunctionData{Data: []byte("x")},
+				Payload: &faaspb.UploadFunctionRequest_UploadFunctionData{
+					UploadFunctionData: &faaspb.UploadFunctionData{Data: []byte("x")},
 				},
 			},
 		},
@@ -283,42 +283,6 @@ func TestUploadFunction_DomainReturnsAlreadyExists(t *testing.T) {
 	require.False(t, stream.sendCalled)
 }
 
-func TestExecuteFunction_InvalidJSON(t *testing.T) {
-	svc := mocks.NewFunctionService(t)
-	s := funcapi.NewServer(svc)
-
-	_, err := s.ExecuteFunction(context.Background(), &functionspb.ExecuteFunctionRequest{
-		Name:       "functions/foo",
-		Parameters: "{", // invalid json
-	})
-	st := status.Convert(err)
-
-	require.Equal(t, codes.InvalidArgument, st.Code())
-	require.Contains(t, st.Message(), "parameters must be valid JSON")
-}
-
-func TestExecuteFunction_Success(t *testing.T) {
-	svc := mocks.NewFunctionService(t)
-	s := funcapi.NewServer(svc)
-
-	svc.EXPECT().
-		ExecuteFunction(mock.Anything, mock.Anything).
-		Run(func(ctx context.Context, args *funcdomain.ExecuteFunctionArgs) {
-			require.Equal(t, funcdomain.FunctionName("functions/foo"), args.Name)
-			require.Equal(t, `{"a":1}`, string(args.Parameters))
-		}).
-		Return(&funcdomain.ExecuteFunctionResult{OperationName: "operations/123"}, nil).
-		Once()
-
-	op, err := s.ExecuteFunction(context.Background(), &functionspb.ExecuteFunctionRequest{
-		Name:       "functions/foo",
-		Parameters: `{"a":1}`,
-	})
-	require.NoError(t, err)
-	require.Equal(t, "operations/123", op.GetName())
-	require.False(t, op.GetDone())
-}
-
 func TestGetFunction_NilFunction_Internal(t *testing.T) {
 	svc := mocks.NewFunctionService(t)
 	s := funcapi.NewServer(svc)
@@ -328,7 +292,7 @@ func TestGetFunction_NilFunction_Internal(t *testing.T) {
 		Return(&funcdomain.GetFunctionResult{Function: nil}, nil).
 		Once()
 
-	_, err := s.GetFunction(context.Background(), &functionspb.GetFunctionRequest{Name: "functions/foo"})
+	_, err := s.GetFunction(context.Background(), &faaspb.GetFunctionRequest{Name: "functions/foo"})
 	st := status.Convert(err)
 
 	require.Equal(t, codes.Internal, st.Code())
@@ -355,7 +319,7 @@ func TestListFunctions_SkipsNil(t *testing.T) {
 		}, nil).
 		Once()
 
-	resp, err := s.ListFunctions(context.Background(), &functionspb.ListFunctionsRequest{
+	resp, err := s.ListFunctions(context.Background(), &faaspb.ListFunctionsRequest{
 		PageSize:  10,
 		PageToken: "pt",
 	})
@@ -374,7 +338,7 @@ func TestDeleteFunction_NotFound(t *testing.T) {
 		Return(funcdomain.ErrFunctionNotFound).
 		Once()
 
-	_, err := s.DeleteFunction(context.Background(), &functionspb.DeleteFunctionRequest{Name: "functions/missing"})
+	_, err := s.DeleteFunction(context.Background(), &faaspb.DeleteFunctionRequest{Name: "functions/missing"})
 	st := status.Convert(err)
 
 	require.Equal(t, codes.NotFound, st.Code())

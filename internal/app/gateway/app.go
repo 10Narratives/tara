@@ -9,7 +9,6 @@ import (
 	funcrepo "github.com/10Narratives/faas/internal/repositories/functions"
 	funcsrv "github.com/10Narratives/faas/internal/services/functions"
 	funcapi "github.com/10Narratives/faas/internal/transport/grpc/api/functions"
-	opapi "github.com/10Narratives/faas/internal/transport/grpc/api/operations"
 	healthapi "github.com/10Narratives/faas/internal/transport/grpc/dev/health"
 	reflectapi "github.com/10Narratives/faas/internal/transport/grpc/dev/reflect"
 
@@ -53,7 +52,7 @@ func NewApp(cfg *Config, log *zap.Logger) (*App, error) {
 		return nil, fmt.Errorf("cannot create functions object repo: %w", err)
 	}
 
-	funcService := funcsrv.NewService(funcMetaRepo, funcObjRepo, nil)
+	funcService := funcsrv.NewService(funcMetaRepo, funcObjRepo)
 
 	grpcServer := grpcsrv.NewComponent(cfg.Server.Grpc.Address,
 		grpcsrv.WithServerOptions(
@@ -71,7 +70,6 @@ func NewApp(cfg *Config, log *zap.Logger) (*App, error) {
 		grpcsrv.WithServiceRegistration(
 			healthapi.NewRegistration(),
 			reflectapi.NewRegistration(),
-			opapi.NewRegistration(nil),
 			funcapi.NewRegistration(funcService),
 		),
 	)

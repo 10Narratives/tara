@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	functionspb "github.com/10Narratives/faas/pkg/faas/v1/functions"
+	faaspb "github.com/10Narratives/faas/pkg/faas/v1"
 	"github.com/spf13/cobra"
 )
 
@@ -44,8 +44,8 @@ func NewDeleteFunctionCmd() *cobra.Command {
 			}
 			defer conn.Close()
 
-			client := functionspb.NewFunctionsClient(conn)
-			if _, err := client.DeleteFunction(ctx, &functionspb.DeleteFunctionRequest{
+			client := faaspb.NewFunctionsClient(conn)
+			if _, err := client.DeleteFunction(ctx, &faaspb.DeleteFunctionRequest{
 				Name: functionName,
 			}); err != nil {
 				return err

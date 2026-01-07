@@ -2,14 +2,13 @@ package funcapi
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"io"
 
-	"cloud.google.com/go/longrunning/autogen/longrunningpb"
 	grpcsrv "github.com/10Narratives/faas/internal/app/components/grpc/server"
 	funcdomain "github.com/10Narratives/faas/internal/domains/functions"
-	functionspb "github.com/10Narratives/faas/pkg/faas/v1/functions"
+	faaspb "github.com/10Narratives/faas/pkg/faas/v1"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,7 +26,7 @@ type FunctionService interface {
 }
 
 type Server struct {
-	functionspb.UnimplementedFunctionsServer
+	faaspb.UnimplementedFunctionsServer
 	functionService FunctionService
 }
 
@@ -37,11 +36,11 @@ func NewServer(functionService FunctionService) *Server {
 
 func NewRegistration(functionService FunctionService) grpcsrv.ServiceRegistration {
 	return func(s *grpc.Server) {
-		functionspb.RegisterFunctionsServer(s, NewServer(functionService))
+		faaspb.RegisterFunctionsServer(s, NewServer(functionService))
 	}
 }
 
-func (s *Server) UploadFunction(stream grpc.ClientStreamingServer[functionspb.UploadFunctionRequest, functionspb.Function]) error {
+func (s *Server) UploadFunction(stream grpc.ClientStreamingServer[faaspb.UploadFunctionRequest, faaspb.Function]) error {
 	ctx := stream.Context()
 
 	first, err := stream.Recv()
@@ -130,36 +129,11 @@ func (s *Server) UploadFunction(stream grpc.ClientStreamingServer[functionspb.Up
 	return stream.SendAndClose(domainToPBFunction(ur.res.Function))
 }
 
-func (s *Server) ExecuteFunction(ctx context.Context, req *functionspb.ExecuteFunctionRequest) (*longrunningpb.Operation, error) {
-	name, err := funcdomain.ParseFunctionName(req.GetName())
-	if err != nil {
-		return nil, toStatusErr(err)
-	}
-
-	var params json.RawMessage
-	if req.GetParameters() != "" {
-		b := []byte(req.GetParameters())
-		if !json.Valid(b) {
-			return nil, status.Error(codes.InvalidArgument, "parameters must be valid JSON")
-		}
-		params = json.RawMessage(b)
-	}
-
-	res, err := s.functionService.ExecuteFunction(ctx, &funcdomain.ExecuteFunctionArgs{
-		Name:       name,
-		Parameters: params,
-	})
-	if err != nil {
-		return nil, toStatusErr(err)
-	}
-
-	return &longrunningpb.Operation{
-		Name: res.OperationName,
-		Done: false,
-	}, nil
+func (s *Server) ExecuteFunction(ctx context.Context, req *faaspb.ExecuteFunctionRequest) (*faaspb.Task, error) {
+	return nil, status.Error(codes.Unimplemented, "method ExecuteFunction not implemented")
 }
 
-func (s *Server) GetFunction(ctx context.Context, req *functionspb.GetFunctionRequest) (*functionspb.Function, error) {
+func (s *Server) GetFunction(ctx context.Context, req *faaspb.GetFunctionRequest) (*faaspb.Function, error) {
 	name, err := funcdomain.ParseFunctionName(req.GetName())
 	if err != nil {
 		return nil, toStatusErr(err)
@@ -176,7 +150,7 @@ func (s *Server) GetFunction(ctx context.Context, req *functionspb.GetFunctionRe
 	return domainToPBFunction(res.Function), nil
 }
 
-func (s *Server) ListFunctions(ctx context.Context, req *functionspb.ListFunctionsRequest) (*functionspb.ListFunctionsResponse, error) {
+func (s *Server) ListFunctions(ctx context.Context, req *faaspb.ListFunctionsRequest) (*faaspb.ListFunctionsResponse, error) {
 	res, err := s.functionService.ListFunctions(ctx, &funcdomain.ListFunctionsArgs{
 		PageSize:  req.GetPageSize(),
 		PageToken: req.GetPageToken(),
@@ -185,8 +159,8 @@ func (s *Server) ListFunctions(ctx context.Context, req *functionspb.ListFunctio
 		return nil, toStatusErr(err)
 	}
 
-	out := &functionspb.ListFunctionsResponse{
-		Functions:     make([]*functionspb.Function, 0, len(res.Functions)),
+	out := &faaspb.ListFunctionsResponse{
+		Functions:     make([]*faaspb.Function, 0, len(res.Functions)),
 		NextPageToken: res.NextPageToken,
 	}
 
@@ -200,7 +174,7 @@ func (s *Server) ListFunctions(ctx context.Context, req *functionspb.ListFunctio
 	return out, nil
 }
 
-func (s *Server) DeleteFunction(ctx context.Context, req *functionspb.DeleteFunctionRequest) (*emptypb.Empty, error) {
+func (s *Server) DeleteFunction(ctx context.Context, req *faaspb.DeleteFunctionRequest) (*emptypb.Empty, error) {
 	name, err := funcdomain.ParseFunctionName(req.GetName())
 	if err != nil {
 		return nil, toStatusErr(err)
@@ -213,23 +187,23 @@ func (s *Server) DeleteFunction(ctx context.Context, req *functionspb.DeleteFunc
 	return &emptypb.Empty{}, nil
 }
 
-func pbToDomainUploadFormat(f functionspb.UploadFunctionMetadata_Format) (funcdomain.UploadFunctionFormat, error) {
+func pbToDomainUploadFormat(f faaspb.UploadFunctionMetadata_Format) (funcdomain.UploadFunctionFormat, error) {
 	switch f {
-	case functionspb.UploadFunctionMetadata_FORMAT_ZIP:
+	case faaspb.UploadFunctionMetadata_FORMAT_ZIP:
 		return funcdomain.ZipFormat, nil
-	case functionspb.UploadFunctionMetadata_FORMAT_TAR_GZ:
+	case faaspb.UploadFunctionMetadata_FORMAT_TAR_GZ:
 		return funcdomain.TarGZFormat, nil
 	default:
 		return "", funcdomain.ErrInvalidArgument
 	}
 }
 
-func domainToPBFunction(f *funcdomain.Function) *functionspb.Function {
-	pb := &functionspb.Function{
+func domainToPBFunction(f *funcdomain.Function) *faaspb.Function {
+	pb := &faaspb.Function{
 		Name:        string(f.Name),
 		DisplayName: f.DisplayName,
 		UploadedAt:  timestamppb.New(f.UploadedAt),
-		SourceBundle: &functionspb.SourceBundle{
+		SourceBundle: &faaspb.SourceBundle{
 			Bucket:    f.Bundle.Bucket,
 			ObjectKey: f.Bundle.ObjectKey,
 			Size:      f.Bundle.Size,

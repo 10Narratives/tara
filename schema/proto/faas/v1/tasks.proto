@@ -1,0 +1,73 @@
+syntax = "proto3";
+
+package faas.v1;
+
+option go_package = "github.com/10Narratives/faas/pkg/faas/v1/;faaspb";
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+//
+message Task {
+  string name = 1;
+  string function = 2;
+  string parameters = 3;
+  TaskState state = 4;
+
+  google.protobuf.Timestamp created_at = 5;
+  google.protobuf.Timestamp started_at = 6;
+  google.protobuf.Timestamp ended_at = 7;
+
+  oneof result {
+    bytes inline_result = 10;
+    string object_key = 11;
+  }
+
+  string error_message = 12;
+}
+
+enum TaskState {
+  TASK_STATE_UNSPECIFIED = 0;
+  TASK_STATE_PENDING = 1;
+  TASK_STATE_PROCESSING = 2;
+  TASK_STATE_SUCCEEDED = 3;
+  TASK_STATE_FAILED = 4;
+  TASK_STATE_CANCELED = 5;
+}
+
+//
+service Tasks {
+  //
+  rpc GetTask(GetTaskRequest) returns (Task);
+
+  //
+  rpc ListTasks(ListTasksRequest) returns (ListTasksResponse);
+
+  //
+  rpc DeleteTask(DeleteTaskRequest) returns (google.protobuf.Empty);
+
+  //
+  rpc CancelTask(CancelTaskRequest) returns (Task);
+}
+
+message GetTaskRequest {
+
+}
+
+message ListTasksRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message ListTasksResponse {
+  repeated Task tasks = 1;
+  string next_page_token = 2;
+}
+
+message DeleteTaskRequest {
+
+}
+
+message CancelTaskRequest {
+
+}
