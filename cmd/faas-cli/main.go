@@ -6,6 +6,7 @@ import (
 	"syscall"
 
 	funccmd "github.com/10Narratives/faas/cmd/faas-cli/functions"
+	taskcmd "github.com/10Narratives/faas/cmd/faas-cli/tasks"
 	errorutils "github.com/10Narratives/faas/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -22,6 +23,7 @@ func main() {
 
 	rootCmd.AddCommand(
 		funccmd.NewFunctionsGroup(),
+		taskcmd.NewTaskGroup(),
 	)
 
 	errorutils.Try(rootCmd.ExecuteContext(ctx))
