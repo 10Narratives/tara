@@ -2,12 +2,11 @@
 // versions:
 // - protoc-gen-go-grpc v1.6.0
 // - protoc             (unknown)
-// source: faas/v1/functions/functions.proto
+// source: faas/v1/functions.proto
 
-package functionspb
+package faaspb
 
 import (
-	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	context "context"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -33,7 +32,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type FunctionsClient interface {
 	UploadFunction(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[UploadFunctionRequest, Function], error)
-	ExecuteFunction(ctx context.Context, in *ExecuteFunctionRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error)
+	ExecuteFunction(ctx context.Context, in *ExecuteFunctionRequest, opts ...grpc.CallOption) (*ExecuteFunctionResponse, error)
 	GetFunction(ctx context.Context, in *GetFunctionRequest, opts ...grpc.CallOption) (*Function, error)
 	ListFunctions(ctx context.Context, in *ListFunctionsRequest, opts ...grpc.CallOption) (*ListFunctionsResponse, error)
 	DeleteFunction(ctx context.Context, in *DeleteFunctionRequest, opts ...grpc.CallOption) (*emptypb.Empty, error)
@@ -60,9 +59,9 @@ func (c *functionsClient) UploadFunction(ctx context.Context, opts ...grpc.CallO
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
 type Functions_UploadFunctionClient = grpc.ClientStreamingClient[UploadFunctionRequest, Function]
 
-func (c *functionsClient) ExecuteFunction(ctx context.Context, in *ExecuteFunctionRequest, opts ...grpc.CallOption) (*longrunningpb.Operation, error) {
+func (c *functionsClient) ExecuteFunction(ctx context.Context, in *ExecuteFunctionRequest, opts ...grpc.CallOption) (*ExecuteFunctionResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(longrunningpb.Operation)
+	out := new(ExecuteFunctionResponse)
 	err := c.cc.Invoke(ctx, Functions_ExecuteFunction_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -105,7 +104,7 @@ func (c *functionsClient) DeleteFunction(ctx context.Context, in *DeleteFunction
 // for forward compatibility.
 type FunctionsServer interface {
 	UploadFunction(grpc.ClientStreamingServer[UploadFunctionRequest, Function]) error
-	ExecuteFunction(context.Context, *ExecuteFunctionRequest) (*longrunningpb.Operation, error)
+	ExecuteFunction(context.Context, *ExecuteFunctionRequest) (*ExecuteFunctionResponse, error)
 	GetFunction(context.Context, *GetFunctionRequest) (*Function, error)
 	ListFunctions(context.Context, *ListFunctionsRequest) (*ListFunctionsResponse, error)
 	DeleteFunction(context.Context, *DeleteFunctionRequest) (*emptypb.Empty, error)
@@ -122,7 +121,7 @@ type UnimplementedFunctionsServer struct{}
 func (UnimplementedFunctionsServer) UploadFunction(grpc.ClientStreamingServer[UploadFunctionRequest, Function]) error {
 	return status.Error(codes.Unimplemented, "method UploadFunction not implemented")
 }
-func (UnimplementedFunctionsServer) ExecuteFunction(context.Context, *ExecuteFunctionRequest) (*longrunningpb.Operation, error) {
+func (UnimplementedFunctionsServer) ExecuteFunction(context.Context, *ExecuteFunctionRequest) (*ExecuteFunctionResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method ExecuteFunction not implemented")
 }
 func (UnimplementedFunctionsServer) GetFunction(context.Context, *GetFunctionRequest) (*Function, error) {
@@ -265,5 +264,5 @@ var Functions_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "faas/v1/functions/functions.proto",
+	Metadata: "faas/v1/functions.proto",
 }

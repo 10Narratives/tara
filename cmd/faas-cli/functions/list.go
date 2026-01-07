@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	functionspb "github.com/10Narratives/faas/pkg/faas/v1/functions"
+	faaspb "github.com/10Narratives/faas/pkg/faas/v1"
 	"github.com/spf13/cobra"
 )
 
@@ -38,9 +38,9 @@ func NewListFunctionsCmd() *cobra.Command {
 			}
 			defer conn.Close()
 
-			client := functionspb.NewFunctionsClient(conn)
+			client := faaspb.NewFunctionsClient(conn)
 
-			printFn := func(fn *functionspb.Function) {
+			printFn := func(fn *faaspb.Function) {
 				uploadedAt := ""
 				if ts := fn.GetUploadedAt(); ts != nil {
 					uploadedAt = ts.AsTime().Format(time.RFC3339Nano)
@@ -72,7 +72,7 @@ func NewListFunctionsCmd() *cobra.Command {
 			}
 
 			if !all {
-				resp, err := client.ListFunctions(ctx, &functionspb.ListFunctionsRequest{
+				resp, err := client.ListFunctions(ctx, &faaspb.ListFunctionsRequest{
 					PageSize:  pageSize,
 					PageToken: pageToken,
 				})
@@ -93,7 +93,7 @@ func NewListFunctionsCmd() *cobra.Command {
 			// --all: auto-pagination
 			token := pageToken
 			for {
-				resp, err := client.ListFunctions(ctx, &functionspb.ListFunctionsRequest{
+				resp, err := client.ListFunctions(ctx, &faaspb.ListFunctionsRequest{
 					PageSize:  pageSize,
 					PageToken: token,
 				})

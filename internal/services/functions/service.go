@@ -2,13 +2,13 @@ package funcsrv
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"time"
 
-	"cloud.google.com/go/longrunning"
 	funcdomain "github.com/10Narratives/faas/internal/domains/functions"
-	opdomain "github.com/10Narratives/faas/internal/domains/operations"
+	taskdomain "github.com/10Narratives/faas/internal/domains/tasks"
 	"github.com/google/uuid"
 )
 
@@ -25,26 +25,25 @@ type FunctionObjectRepository interface {
 	DeleteBundle(ctx context.Context, bundle *funcdomain.SourceBundle) error
 }
 
-type OperationRepository interface {
-	CreateOperation(ctx context.Context, op *longrunning.Operation) (opdomain.OperationName, error)
-	opdomain.OperationGetter
+type TaskService interface {
+	taskdomain.TaskCreator
 }
 
 type Service struct {
 	funcMetaRepo FunctionMetadataRepository
 	funcObjRepo  FunctionObjectRepository
-	opRepo       OperationRepository
+	taskService  TaskService
 }
 
 func NewService(
 	funcMetaRepo FunctionMetadataRepository,
 	funcObjRepo FunctionObjectRepository,
-	opRepo OperationRepository,
+	taskService TaskService,
 ) *Service {
 	return &Service{
 		funcMetaRepo: funcMetaRepo,
 		funcObjRepo:  funcObjRepo,
-		opRepo:       opRepo,
+		taskService:  taskService,
 	}
 }
 
@@ -73,6 +72,16 @@ func (s *Service) ExecuteFunction(ctx context.Context, args *funcdomain.ExecuteF
 	if args == nil {
 		return nil, funcdomain.ErrInvalidArgument
 	}
+	if args.Name == "" {
+		return nil, funcdomain.ErrInvalidArgument
+	}
+
+	if len(args.Parameters) != 0 {
+		var tmp any
+		if err := json.Unmarshal([]byte(args.Parameters), &tmp); err != nil {
+			return nil, funcdomain.ErrInvalidArgument
+		}
+	}
 
 	got, err := s.funcMetaRepo.GetFunction(ctx, &funcdomain.GetFunctionArgs{Name: args.Name})
 	if err != nil {
@@ -82,12 +91,14 @@ func (s *Service) ExecuteFunction(ctx context.Context, args *funcdomain.ExecuteF
 		return nil, funcdomain.ErrFunctionNotFound
 	}
 
-	opName, err := s.opRepo.CreateOperation(ctx, &longrunning.Operation{})
+	res, err := s.taskService.CreateTask(ctx, &taskdomain.CreateTaskArgs{Function: string(args.Name), Parameters: string(args.Parameters)})
 	if err != nil {
 		return nil, err
 	}
 
-	return &funcdomain.ExecuteFunctionResult{OperationName: string(opName)}, nil
+	return &funcdomain.ExecuteFunctionResult{
+		TaskName: res.Name,
+	}, nil
 }
 
 func (s *Service) GetFunction(ctx context.Context, args *funcdomain.GetFunctionArgs) (*funcdomain.GetFunctionResult, error) {

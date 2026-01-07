@@ -2,12 +2,11 @@
 // versions:
 // 	protoc-gen-go v1.36.10
 // 	protoc        (unknown)
-// source: faas/v1/functions/functions.proto
+// source: faas/v1/functions.proto
 
-package functionspb
+package faaspb
 
 import (
-	longrunningpb "cloud.google.com/go/longrunning/autogen/longrunningpb"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
@@ -24,64 +23,6 @@ const (
 	// Verify that runtime/protoimpl is sufficiently up-to-date.
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
-
-type ExecutionState int32
-
-const (
-	ExecutionState_EXECUTION_STATE_UNSPECIFIED ExecutionState = 0
-	ExecutionState_EXECUTION_STATE_PENDING     ExecutionState = 1
-	ExecutionState_EXECUTION_STATE_PROCESSING  ExecutionState = 2
-	ExecutionState_EXECUTION_STATE_SUCCEEDED   ExecutionState = 3
-	ExecutionState_EXECUTION_STATE_FAILED      ExecutionState = 4
-	ExecutionState_EXECUTION_STATE_CANCELED    ExecutionState = 5
-)
-
-// Enum value maps for ExecutionState.
-var (
-	ExecutionState_name = map[int32]string{
-		0: "EXECUTION_STATE_UNSPECIFIED",
-		1: "EXECUTION_STATE_PENDING",
-		2: "EXECUTION_STATE_PROCESSING",
-		3: "EXECUTION_STATE_SUCCEEDED",
-		4: "EXECUTION_STATE_FAILED",
-		5: "EXECUTION_STATE_CANCELED",
-	}
-	ExecutionState_value = map[string]int32{
-		"EXECUTION_STATE_UNSPECIFIED": 0,
-		"EXECUTION_STATE_PENDING":     1,
-		"EXECUTION_STATE_PROCESSING":  2,
-		"EXECUTION_STATE_SUCCEEDED":   3,
-		"EXECUTION_STATE_FAILED":      4,
-		"EXECUTION_STATE_CANCELED":    5,
-	}
-)
-
-func (x ExecutionState) Enum() *ExecutionState {
-	p := new(ExecutionState)
-	*p = x
-	return p
-}
-
-func (x ExecutionState) String() string {
-	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
-}
-
-func (ExecutionState) Descriptor() protoreflect.EnumDescriptor {
-	return file_faas_v1_functions_functions_proto_enumTypes[0].Descriptor()
-}
-
-func (ExecutionState) Type() protoreflect.EnumType {
-	return &file_faas_v1_functions_functions_proto_enumTypes[0]
-}
-
-func (x ExecutionState) Number() protoreflect.EnumNumber {
-	return protoreflect.EnumNumber(x)
-}
-
-// Deprecated: Use ExecutionState.Descriptor instead.
-func (ExecutionState) EnumDescriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{0}
-}
 
 type UploadFunctionMetadata_Format int32
 
@@ -116,11 +57,11 @@ func (x UploadFunctionMetadata_Format) String() string {
 }
 
 func (UploadFunctionMetadata_Format) Descriptor() protoreflect.EnumDescriptor {
-	return file_faas_v1_functions_functions_proto_enumTypes[1].Descriptor()
+	return file_faas_v1_functions_proto_enumTypes[0].Descriptor()
 }
 
 func (UploadFunctionMetadata_Format) Type() protoreflect.EnumType {
-	return &file_faas_v1_functions_functions_proto_enumTypes[1]
+	return &file_faas_v1_functions_proto_enumTypes[0]
 }
 
 func (x UploadFunctionMetadata_Format) Number() protoreflect.EnumNumber {
@@ -129,7 +70,7 @@ func (x UploadFunctionMetadata_Format) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use UploadFunctionMetadata_Format.Descriptor instead.
 func (UploadFunctionMetadata_Format) EnumDescriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{3, 0}
+	return file_faas_v1_functions_proto_rawDescGZIP(), []int{3, 0}
 }
 
 type Function struct {
@@ -144,7 +85,7 @@ type Function struct {
 
 func (x *Function) Reset() {
 	*x = Function{}
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[0]
+	mi := &file_faas_v1_functions_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -156,7 +97,7 @@ func (x *Function) String() string {
 func (*Function) ProtoMessage() {}
 
 func (x *Function) ProtoReflect() protoreflect.Message {
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[0]
+	mi := &file_faas_v1_functions_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -169,7 +110,7 @@ func (x *Function) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Function.ProtoReflect.Descriptor instead.
 func (*Function) Descriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{0}
+	return file_faas_v1_functions_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Function) GetName() string {
@@ -212,7 +153,7 @@ type SourceBundle struct {
 
 func (x *SourceBundle) Reset() {
 	*x = SourceBundle{}
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[1]
+	mi := &file_faas_v1_functions_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -224,7 +165,7 @@ func (x *SourceBundle) String() string {
 func (*SourceBundle) ProtoMessage() {}
 
 func (x *SourceBundle) ProtoReflect() protoreflect.Message {
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[1]
+	mi := &file_faas_v1_functions_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -237,7 +178,7 @@ func (x *SourceBundle) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SourceBundle.ProtoReflect.Descriptor instead.
 func (*SourceBundle) Descriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{1}
+	return file_faas_v1_functions_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *SourceBundle) GetBucket() string {
@@ -281,7 +222,7 @@ type UploadFunctionRequest struct {
 
 func (x *UploadFunctionRequest) Reset() {
 	*x = UploadFunctionRequest{}
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[2]
+	mi := &file_faas_v1_functions_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -293,7 +234,7 @@ func (x *UploadFunctionRequest) String() string {
 func (*UploadFunctionRequest) ProtoMessage() {}
 
 func (x *UploadFunctionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[2]
+	mi := &file_faas_v1_functions_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -306,7 +247,7 @@ func (x *UploadFunctionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadFunctionRequest.ProtoReflect.Descriptor instead.
 func (*UploadFunctionRequest) Descriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{2}
+	return file_faas_v1_functions_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *UploadFunctionRequest) GetPayload() isUploadFunctionRequest_Payload {
@@ -360,7 +301,7 @@ type UploadFunctionMetadata struct {
 
 func (x *UploadFunctionMetadata) Reset() {
 	*x = UploadFunctionMetadata{}
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[3]
+	mi := &file_faas_v1_functions_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -372,7 +313,7 @@ func (x *UploadFunctionMetadata) String() string {
 func (*UploadFunctionMetadata) ProtoMessage() {}
 
 func (x *UploadFunctionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[3]
+	mi := &file_faas_v1_functions_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -385,7 +326,7 @@ func (x *UploadFunctionMetadata) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadFunctionMetadata.ProtoReflect.Descriptor instead.
 func (*UploadFunctionMetadata) Descriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{3}
+	return file_faas_v1_functions_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *UploadFunctionMetadata) GetFunctionName() string {
@@ -411,7 +352,7 @@ type UploadFunctionData struct {
 
 func (x *UploadFunctionData) Reset() {
 	*x = UploadFunctionData{}
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[4]
+	mi := &file_faas_v1_functions_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -423,7 +364,7 @@ func (x *UploadFunctionData) String() string {
 func (*UploadFunctionData) ProtoMessage() {}
 
 func (x *UploadFunctionData) ProtoReflect() protoreflect.Message {
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[4]
+	mi := &file_faas_v1_functions_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -436,7 +377,7 @@ func (x *UploadFunctionData) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UploadFunctionData.ProtoReflect.Descriptor instead.
 func (*UploadFunctionData) Descriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{4}
+	return file_faas_v1_functions_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *UploadFunctionData) GetData() []byte {
@@ -456,7 +397,7 @@ type ExecuteFunctionRequest struct {
 
 func (x *ExecuteFunctionRequest) Reset() {
 	*x = ExecuteFunctionRequest{}
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[5]
+	mi := &file_faas_v1_functions_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -468,7 +409,7 @@ func (x *ExecuteFunctionRequest) String() string {
 func (*ExecuteFunctionRequest) ProtoMessage() {}
 
 func (x *ExecuteFunctionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[5]
+	mi := &file_faas_v1_functions_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -481,7 +422,7 @@ func (x *ExecuteFunctionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteFunctionRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteFunctionRequest) Descriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{5}
+	return file_faas_v1_functions_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ExecuteFunctionRequest) GetName() string {
@@ -499,19 +440,15 @@ func (x *ExecuteFunctionRequest) GetParameters() string {
 }
 
 type ExecuteFunctionResponse struct {
-	state protoimpl.MessageState `protogen:"open.v1"`
-	// Types that are valid to be assigned to Result:
-	//
-	//	*ExecuteFunctionResponse_InlineResult
-	//	*ExecuteFunctionResponse_ObjectKey
-	Result        isExecuteFunctionResponse_Result `protobuf_oneof:"result"`
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Name          string                 `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ExecuteFunctionResponse) Reset() {
 	*x = ExecuteFunctionResponse{}
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[6]
+	mi := &file_faas_v1_functions_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -523,7 +460,7 @@ func (x *ExecuteFunctionResponse) String() string {
 func (*ExecuteFunctionResponse) ProtoMessage() {}
 
 func (x *ExecuteFunctionResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[6]
+	mi := &file_faas_v1_functions_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -536,116 +473,14 @@ func (x *ExecuteFunctionResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteFunctionResponse.ProtoReflect.Descriptor instead.
 func (*ExecuteFunctionResponse) Descriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{6}
+	return file_faas_v1_functions_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *ExecuteFunctionResponse) GetResult() isExecuteFunctionResponse_Result {
+func (x *ExecuteFunctionResponse) GetName() string {
 	if x != nil {
-		return x.Result
-	}
-	return nil
-}
-
-func (x *ExecuteFunctionResponse) GetInlineResult() []byte {
-	if x != nil {
-		if x, ok := x.Result.(*ExecuteFunctionResponse_InlineResult); ok {
-			return x.InlineResult
-		}
-	}
-	return nil
-}
-
-func (x *ExecuteFunctionResponse) GetObjectKey() string {
-	if x != nil {
-		if x, ok := x.Result.(*ExecuteFunctionResponse_ObjectKey); ok {
-			return x.ObjectKey
-		}
+		return x.Name
 	}
 	return ""
-}
-
-type isExecuteFunctionResponse_Result interface {
-	isExecuteFunctionResponse_Result()
-}
-
-type ExecuteFunctionResponse_InlineResult struct {
-	InlineResult []byte `protobuf:"bytes,1,opt,name=inline_result,json=inlineResult,proto3,oneof"`
-}
-
-type ExecuteFunctionResponse_ObjectKey struct {
-	ObjectKey string `protobuf:"bytes,2,opt,name=object_key,json=objectKey,proto3,oneof"`
-}
-
-func (*ExecuteFunctionResponse_InlineResult) isExecuteFunctionResponse_Result() {}
-
-func (*ExecuteFunctionResponse_ObjectKey) isExecuteFunctionResponse_Result() {}
-
-type ExecuteFunctionMetadata struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	ExecutionState ExecutionState         `protobuf:"varint,1,opt,name=execution_state,json=executionState,proto3,enum=faas.v1.functions.ExecutionState" json:"execution_state,omitempty"`
-	CreatedAt      *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	StartedAt      *timestamppb.Timestamp `protobuf:"bytes,3,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
-	EndedAt        *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=ended_at,json=endedAt,proto3" json:"ended_at,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
-}
-
-func (x *ExecuteFunctionMetadata) Reset() {
-	*x = ExecuteFunctionMetadata{}
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[7]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *ExecuteFunctionMetadata) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*ExecuteFunctionMetadata) ProtoMessage() {}
-
-func (x *ExecuteFunctionMetadata) ProtoReflect() protoreflect.Message {
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[7]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use ExecuteFunctionMetadata.ProtoReflect.Descriptor instead.
-func (*ExecuteFunctionMetadata) Descriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{7}
-}
-
-func (x *ExecuteFunctionMetadata) GetExecutionState() ExecutionState {
-	if x != nil {
-		return x.ExecutionState
-	}
-	return ExecutionState_EXECUTION_STATE_UNSPECIFIED
-}
-
-func (x *ExecuteFunctionMetadata) GetCreatedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.CreatedAt
-	}
-	return nil
-}
-
-func (x *ExecuteFunctionMetadata) GetStartedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.StartedAt
-	}
-	return nil
-}
-
-func (x *ExecuteFunctionMetadata) GetEndedAt() *timestamppb.Timestamp {
-	if x != nil {
-		return x.EndedAt
-	}
-	return nil
 }
 
 type GetFunctionRequest struct {
@@ -657,7 +492,7 @@ type GetFunctionRequest struct {
 
 func (x *GetFunctionRequest) Reset() {
 	*x = GetFunctionRequest{}
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[8]
+	mi := &file_faas_v1_functions_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -669,7 +504,7 @@ func (x *GetFunctionRequest) String() string {
 func (*GetFunctionRequest) ProtoMessage() {}
 
 func (x *GetFunctionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[8]
+	mi := &file_faas_v1_functions_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -682,7 +517,7 @@ func (x *GetFunctionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetFunctionRequest.ProtoReflect.Descriptor instead.
 func (*GetFunctionRequest) Descriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{8}
+	return file_faas_v1_functions_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetFunctionRequest) GetName() string {
@@ -702,7 +537,7 @@ type ListFunctionsRequest struct {
 
 func (x *ListFunctionsRequest) Reset() {
 	*x = ListFunctionsRequest{}
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[9]
+	mi := &file_faas_v1_functions_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -714,7 +549,7 @@ func (x *ListFunctionsRequest) String() string {
 func (*ListFunctionsRequest) ProtoMessage() {}
 
 func (x *ListFunctionsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[9]
+	mi := &file_faas_v1_functions_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -727,7 +562,7 @@ func (x *ListFunctionsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFunctionsRequest.ProtoReflect.Descriptor instead.
 func (*ListFunctionsRequest) Descriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{9}
+	return file_faas_v1_functions_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *ListFunctionsRequest) GetPageSize() int32 {
@@ -754,7 +589,7 @@ type ListFunctionsResponse struct {
 
 func (x *ListFunctionsResponse) Reset() {
 	*x = ListFunctionsResponse{}
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[10]
+	mi := &file_faas_v1_functions_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -766,7 +601,7 @@ func (x *ListFunctionsResponse) String() string {
 func (*ListFunctionsResponse) ProtoMessage() {}
 
 func (x *ListFunctionsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[10]
+	mi := &file_faas_v1_functions_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -779,7 +614,7 @@ func (x *ListFunctionsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListFunctionsResponse.ProtoReflect.Descriptor instead.
 func (*ListFunctionsResponse) Descriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{10}
+	return file_faas_v1_functions_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ListFunctionsResponse) GetFunctions() []*Function {
@@ -805,7 +640,7 @@ type DeleteFunctionRequest struct {
 
 func (x *DeleteFunctionRequest) Reset() {
 	*x = DeleteFunctionRequest{}
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[11]
+	mi := &file_faas_v1_functions_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -817,7 +652,7 @@ func (x *DeleteFunctionRequest) String() string {
 func (*DeleteFunctionRequest) ProtoMessage() {}
 
 func (x *DeleteFunctionRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_faas_v1_functions_functions_proto_msgTypes[11]
+	mi := &file_faas_v1_functions_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -830,7 +665,7 @@ func (x *DeleteFunctionRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteFunctionRequest.ProtoReflect.Descriptor instead.
 func (*DeleteFunctionRequest) Descriptor() ([]byte, []int) {
-	return file_faas_v1_functions_functions_proto_rawDescGZIP(), []int{11}
+	return file_faas_v1_functions_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *DeleteFunctionRequest) GetName() string {
@@ -840,18 +675,17 @@ func (x *DeleteFunctionRequest) GetName() string {
 	return ""
 }
 
-var File_faas_v1_functions_functions_proto protoreflect.FileDescriptor
+var File_faas_v1_functions_proto protoreflect.FileDescriptor
 
-const file_faas_v1_functions_functions_proto_rawDesc = "" +
+const file_faas_v1_functions_proto_rawDesc = "" +
 	"\n" +
-	"!faas/v1/functions/functions.proto\x12\x11faas.v1.functions\x1a#google/longrunning/operations.proto\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\"\x9f\x02\n" +
-	"\bFunction\x12\x17\n" +
-	"\x04name\x18\x01 \x01(\tB\x03\xe0A\bR\x04name\x12!\n" +
-	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12@\n" +
-	"\vuploaded_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampB\x03\xe0A\x03R\n" +
-	"uploadedAt\x12I\n" +
-	"\rsource_bundle\x18\x04 \x01(\v2\x1f.faas.v1.functions.SourceBundleB\x03\xe0A\x03R\fsourceBundle:J\xeaAG\n" +
-	"\x1bfunctions.faas.com/Function\x12\x14functions/{function}*\bfunction2\bfunction\"q\n" +
+	"\x17faas/v1/functions.proto\x12\x11faas.v1.functions\x1a\x1bgoogle/protobuf/empty.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1fgoogle/api/field_behavior.proto\x1a\x19google/api/resource.proto\"\xc4\x01\n" +
+	"\bFunction\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\x12!\n" +
+	"\fdisplay_name\x18\x02 \x01(\tR\vdisplayName\x12;\n" +
+	"\vuploaded_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\n" +
+	"uploadedAt\x12D\n" +
+	"\rsource_bundle\x18\x04 \x01(\v2\x1f.faas.v1.functions.SourceBundleR\fsourceBundle\"q\n" +
 	"\fSourceBundle\x12\x16\n" +
 	"\x06bucket\x18\x01 \x01(\tR\x06bucket\x12\x1d\n" +
 	"\n" +
@@ -876,135 +710,106 @@ const file_faas_v1_functions_functions_proto_rawDesc = "" +
 	"\x04name\x18\x01 \x01(\tR\x04name\x12\x1e\n" +
 	"\n" +
 	"parameters\x18\x02 \x01(\tR\n" +
-	"parameters\"k\n" +
-	"\x17ExecuteFunctionResponse\x12%\n" +
-	"\rinline_result\x18\x01 \x01(\fH\x00R\finlineResult\x12\x1f\n" +
-	"\n" +
-	"object_key\x18\x02 \x01(\tH\x00R\tobjectKeyB\b\n" +
-	"\x06result\"\x92\x02\n" +
-	"\x17ExecuteFunctionMetadata\x12J\n" +
-	"\x0fexecution_state\x18\x01 \x01(\x0e2!.faas.v1.functions.ExecutionStateR\x0eexecutionState\x129\n" +
-	"\n" +
-	"created_at\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
-	"\n" +
-	"started_at\x18\x03 \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt\x125\n" +
-	"\bended_at\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\aendedAt\"-\n" +
-	"\x12GetFunctionRequest\x12\x17\n" +
-	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name\"R\n" +
+	"parameters\"-\n" +
+	"\x17ExecuteFunctionResponse\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"(\n" +
+	"\x12GetFunctionRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name\"R\n" +
 	"\x14ListFunctionsRequest\x12\x1b\n" +
 	"\tpage_size\x18\x01 \x01(\x05R\bpageSize\x12\x1d\n" +
 	"\n" +
 	"page_token\x18\x02 \x01(\tR\tpageToken\"z\n" +
 	"\x15ListFunctionsResponse\x129\n" +
 	"\tfunctions\x18\x01 \x03(\v2\x1b.faas.v1.functions.FunctionR\tfunctions\x12&\n" +
-	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"0\n" +
-	"\x15DeleteFunctionRequest\x12\x17\n" +
-	"\x04name\x18\x01 \x01(\tB\x03\xe0A\x02R\x04name*\xc7\x01\n" +
-	"\x0eExecutionState\x12\x1f\n" +
-	"\x1bEXECUTION_STATE_UNSPECIFIED\x10\x00\x12\x1b\n" +
-	"\x17EXECUTION_STATE_PENDING\x10\x01\x12\x1e\n" +
-	"\x1aEXECUTION_STATE_PROCESSING\x10\x02\x12\x1d\n" +
-	"\x19EXECUTION_STATE_SUCCEEDED\x10\x03\x12\x1a\n" +
-	"\x16EXECUTION_STATE_FAILED\x10\x04\x12\x1c\n" +
-	"\x18EXECUTION_STATE_CANCELED\x10\x052\x86\x04\n" +
+	"\x0fnext_page_token\x18\x02 \x01(\tR\rnextPageToken\"+\n" +
+	"\x15DeleteFunctionRequest\x12\x12\n" +
+	"\x04name\x18\x01 \x01(\tR\x04name2\xdb\x03\n" +
 	"\tFunctions\x12Y\n" +
-	"\x0eUploadFunction\x12(.faas.v1.functions.UploadFunctionRequest\x1a\x1b.faas.v1.functions.Function(\x01\x12\x92\x01\n" +
-	"\x0fExecuteFunction\x12).faas.v1.functions.ExecuteFunctionRequest\x1a\x1d.google.longrunning.Operation\"5\xcaA2\n" +
-	"\x17ExecuteFunctionResponse\x12\x17ExecuteFunctionMetadata\x12Q\n" +
+	"\x0eUploadFunction\x12(.faas.v1.functions.UploadFunctionRequest\x1a\x1b.faas.v1.functions.Function(\x01\x12h\n" +
+	"\x0fExecuteFunction\x12).faas.v1.functions.ExecuteFunctionRequest\x1a*.faas.v1.functions.ExecuteFunctionResponse\x12Q\n" +
 	"\vGetFunction\x12%.faas.v1.functions.GetFunctionRequest\x1a\x1b.faas.v1.functions.Function\x12b\n" +
 	"\rListFunctions\x12'.faas.v1.functions.ListFunctionsRequest\x1a(.faas.v1.functions.ListFunctionsResponse\x12R\n" +
-	"\x0eDeleteFunction\x12(.faas.v1.functions.DeleteFunctionRequest\x1a\x16.google.protobuf.EmptyB@Z>github.com/10Narratives/faas/pkg/faas/v1/functions;functionspbb\x06proto3"
+	"\x0eDeleteFunction\x12(.faas.v1.functions.DeleteFunctionRequest\x1a\x16.google.protobuf.EmptyB2Z0github.com/10Narratives/faas/pkg/faas/v1/;faaspbb\x06proto3"
 
 var (
-	file_faas_v1_functions_functions_proto_rawDescOnce sync.Once
-	file_faas_v1_functions_functions_proto_rawDescData []byte
+	file_faas_v1_functions_proto_rawDescOnce sync.Once
+	file_faas_v1_functions_proto_rawDescData []byte
 )
 
-func file_faas_v1_functions_functions_proto_rawDescGZIP() []byte {
-	file_faas_v1_functions_functions_proto_rawDescOnce.Do(func() {
-		file_faas_v1_functions_functions_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_faas_v1_functions_functions_proto_rawDesc), len(file_faas_v1_functions_functions_proto_rawDesc)))
+func file_faas_v1_functions_proto_rawDescGZIP() []byte {
+	file_faas_v1_functions_proto_rawDescOnce.Do(func() {
+		file_faas_v1_functions_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_faas_v1_functions_proto_rawDesc), len(file_faas_v1_functions_proto_rawDesc)))
 	})
-	return file_faas_v1_functions_functions_proto_rawDescData
+	return file_faas_v1_functions_proto_rawDescData
 }
 
-var file_faas_v1_functions_functions_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_faas_v1_functions_functions_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
-var file_faas_v1_functions_functions_proto_goTypes = []any{
-	(ExecutionState)(0),                // 0: faas.v1.functions.ExecutionState
-	(UploadFunctionMetadata_Format)(0), // 1: faas.v1.functions.UploadFunctionMetadata.Format
-	(*Function)(nil),                   // 2: faas.v1.functions.Function
-	(*SourceBundle)(nil),               // 3: faas.v1.functions.SourceBundle
-	(*UploadFunctionRequest)(nil),      // 4: faas.v1.functions.UploadFunctionRequest
-	(*UploadFunctionMetadata)(nil),     // 5: faas.v1.functions.UploadFunctionMetadata
-	(*UploadFunctionData)(nil),         // 6: faas.v1.functions.UploadFunctionData
-	(*ExecuteFunctionRequest)(nil),     // 7: faas.v1.functions.ExecuteFunctionRequest
-	(*ExecuteFunctionResponse)(nil),    // 8: faas.v1.functions.ExecuteFunctionResponse
-	(*ExecuteFunctionMetadata)(nil),    // 9: faas.v1.functions.ExecuteFunctionMetadata
-	(*GetFunctionRequest)(nil),         // 10: faas.v1.functions.GetFunctionRequest
-	(*ListFunctionsRequest)(nil),       // 11: faas.v1.functions.ListFunctionsRequest
-	(*ListFunctionsResponse)(nil),      // 12: faas.v1.functions.ListFunctionsResponse
-	(*DeleteFunctionRequest)(nil),      // 13: faas.v1.functions.DeleteFunctionRequest
-	(*timestamppb.Timestamp)(nil),      // 14: google.protobuf.Timestamp
-	(*longrunningpb.Operation)(nil),    // 15: google.longrunning.Operation
-	(*emptypb.Empty)(nil),              // 16: google.protobuf.Empty
+var file_faas_v1_functions_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
+var file_faas_v1_functions_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_faas_v1_functions_proto_goTypes = []any{
+	(UploadFunctionMetadata_Format)(0), // 0: faas.v1.functions.UploadFunctionMetadata.Format
+	(*Function)(nil),                   // 1: faas.v1.functions.Function
+	(*SourceBundle)(nil),               // 2: faas.v1.functions.SourceBundle
+	(*UploadFunctionRequest)(nil),      // 3: faas.v1.functions.UploadFunctionRequest
+	(*UploadFunctionMetadata)(nil),     // 4: faas.v1.functions.UploadFunctionMetadata
+	(*UploadFunctionData)(nil),         // 5: faas.v1.functions.UploadFunctionData
+	(*ExecuteFunctionRequest)(nil),     // 6: faas.v1.functions.ExecuteFunctionRequest
+	(*ExecuteFunctionResponse)(nil),    // 7: faas.v1.functions.ExecuteFunctionResponse
+	(*GetFunctionRequest)(nil),         // 8: faas.v1.functions.GetFunctionRequest
+	(*ListFunctionsRequest)(nil),       // 9: faas.v1.functions.ListFunctionsRequest
+	(*ListFunctionsResponse)(nil),      // 10: faas.v1.functions.ListFunctionsResponse
+	(*DeleteFunctionRequest)(nil),      // 11: faas.v1.functions.DeleteFunctionRequest
+	(*timestamppb.Timestamp)(nil),      // 12: google.protobuf.Timestamp
+	(*emptypb.Empty)(nil),              // 13: google.protobuf.Empty
 }
-var file_faas_v1_functions_functions_proto_depIdxs = []int32{
-	14, // 0: faas.v1.functions.Function.uploaded_at:type_name -> google.protobuf.Timestamp
-	3,  // 1: faas.v1.functions.Function.source_bundle:type_name -> faas.v1.functions.SourceBundle
-	5,  // 2: faas.v1.functions.UploadFunctionRequest.upload_function_metadata:type_name -> faas.v1.functions.UploadFunctionMetadata
-	6,  // 3: faas.v1.functions.UploadFunctionRequest.upload_function_data:type_name -> faas.v1.functions.UploadFunctionData
-	1,  // 4: faas.v1.functions.UploadFunctionMetadata.format:type_name -> faas.v1.functions.UploadFunctionMetadata.Format
-	0,  // 5: faas.v1.functions.ExecuteFunctionMetadata.execution_state:type_name -> faas.v1.functions.ExecutionState
-	14, // 6: faas.v1.functions.ExecuteFunctionMetadata.created_at:type_name -> google.protobuf.Timestamp
-	14, // 7: faas.v1.functions.ExecuteFunctionMetadata.started_at:type_name -> google.protobuf.Timestamp
-	14, // 8: faas.v1.functions.ExecuteFunctionMetadata.ended_at:type_name -> google.protobuf.Timestamp
-	2,  // 9: faas.v1.functions.ListFunctionsResponse.functions:type_name -> faas.v1.functions.Function
-	4,  // 10: faas.v1.functions.Functions.UploadFunction:input_type -> faas.v1.functions.UploadFunctionRequest
-	7,  // 11: faas.v1.functions.Functions.ExecuteFunction:input_type -> faas.v1.functions.ExecuteFunctionRequest
-	10, // 12: faas.v1.functions.Functions.GetFunction:input_type -> faas.v1.functions.GetFunctionRequest
-	11, // 13: faas.v1.functions.Functions.ListFunctions:input_type -> faas.v1.functions.ListFunctionsRequest
-	13, // 14: faas.v1.functions.Functions.DeleteFunction:input_type -> faas.v1.functions.DeleteFunctionRequest
-	2,  // 15: faas.v1.functions.Functions.UploadFunction:output_type -> faas.v1.functions.Function
-	15, // 16: faas.v1.functions.Functions.ExecuteFunction:output_type -> google.longrunning.Operation
-	2,  // 17: faas.v1.functions.Functions.GetFunction:output_type -> faas.v1.functions.Function
-	12, // 18: faas.v1.functions.Functions.ListFunctions:output_type -> faas.v1.functions.ListFunctionsResponse
-	16, // 19: faas.v1.functions.Functions.DeleteFunction:output_type -> google.protobuf.Empty
-	15, // [15:20] is the sub-list for method output_type
-	10, // [10:15] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+var file_faas_v1_functions_proto_depIdxs = []int32{
+	12, // 0: faas.v1.functions.Function.uploaded_at:type_name -> google.protobuf.Timestamp
+	2,  // 1: faas.v1.functions.Function.source_bundle:type_name -> faas.v1.functions.SourceBundle
+	4,  // 2: faas.v1.functions.UploadFunctionRequest.upload_function_metadata:type_name -> faas.v1.functions.UploadFunctionMetadata
+	5,  // 3: faas.v1.functions.UploadFunctionRequest.upload_function_data:type_name -> faas.v1.functions.UploadFunctionData
+	0,  // 4: faas.v1.functions.UploadFunctionMetadata.format:type_name -> faas.v1.functions.UploadFunctionMetadata.Format
+	1,  // 5: faas.v1.functions.ListFunctionsResponse.functions:type_name -> faas.v1.functions.Function
+	3,  // 6: faas.v1.functions.Functions.UploadFunction:input_type -> faas.v1.functions.UploadFunctionRequest
+	6,  // 7: faas.v1.functions.Functions.ExecuteFunction:input_type -> faas.v1.functions.ExecuteFunctionRequest
+	8,  // 8: faas.v1.functions.Functions.GetFunction:input_type -> faas.v1.functions.GetFunctionRequest
+	9,  // 9: faas.v1.functions.Functions.ListFunctions:input_type -> faas.v1.functions.ListFunctionsRequest
+	11, // 10: faas.v1.functions.Functions.DeleteFunction:input_type -> faas.v1.functions.DeleteFunctionRequest
+	1,  // 11: faas.v1.functions.Functions.UploadFunction:output_type -> faas.v1.functions.Function
+	7,  // 12: faas.v1.functions.Functions.ExecuteFunction:output_type -> faas.v1.functions.ExecuteFunctionResponse
+	1,  // 13: faas.v1.functions.Functions.GetFunction:output_type -> faas.v1.functions.Function
+	10, // 14: faas.v1.functions.Functions.ListFunctions:output_type -> faas.v1.functions.ListFunctionsResponse
+	13, // 15: faas.v1.functions.Functions.DeleteFunction:output_type -> google.protobuf.Empty
+	11, // [11:16] is the sub-list for method output_type
+	6,  // [6:11] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
-func init() { file_faas_v1_functions_functions_proto_init() }
-func file_faas_v1_functions_functions_proto_init() {
-	if File_faas_v1_functions_functions_proto != nil {
+func init() { file_faas_v1_functions_proto_init() }
+func file_faas_v1_functions_proto_init() {
+	if File_faas_v1_functions_proto != nil {
 		return
 	}
-	file_faas_v1_functions_functions_proto_msgTypes[2].OneofWrappers = []any{
+	file_faas_v1_functions_proto_msgTypes[2].OneofWrappers = []any{
 		(*UploadFunctionRequest_UploadFunctionMetadata)(nil),
 		(*UploadFunctionRequest_UploadFunctionData)(nil),
-	}
-	file_faas_v1_functions_functions_proto_msgTypes[6].OneofWrappers = []any{
-		(*ExecuteFunctionResponse_InlineResult)(nil),
-		(*ExecuteFunctionResponse_ObjectKey)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_faas_v1_functions_functions_proto_rawDesc), len(file_faas_v1_functions_functions_proto_rawDesc)),
-			NumEnums:      2,
-			NumMessages:   12,
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_faas_v1_functions_proto_rawDesc), len(file_faas_v1_functions_proto_rawDesc)),
+			NumEnums:      1,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_faas_v1_functions_functions_proto_goTypes,
-		DependencyIndexes: file_faas_v1_functions_functions_proto_depIdxs,
-		EnumInfos:         file_faas_v1_functions_functions_proto_enumTypes,
-		MessageInfos:      file_faas_v1_functions_functions_proto_msgTypes,
+		GoTypes:           file_faas_v1_functions_proto_goTypes,
+		DependencyIndexes: file_faas_v1_functions_proto_depIdxs,
+		EnumInfos:         file_faas_v1_functions_proto_enumTypes,
+		MessageInfos:      file_faas_v1_functions_proto_msgTypes,
 	}.Build()
-	File_faas_v1_functions_functions_proto = out.File
-	file_faas_v1_functions_functions_proto_goTypes = nil
-	file_faas_v1_functions_functions_proto_depIdxs = nil
+	File_faas_v1_functions_proto = out.File
+	file_faas_v1_functions_proto_goTypes = nil
+	file_faas_v1_functions_proto_depIdxs = nil
 }

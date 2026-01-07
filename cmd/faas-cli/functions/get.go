@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	functionspb "github.com/10Narratives/faas/pkg/faas/v1/functions"
+	faaspb "github.com/10Narratives/faas/pkg/faas/v1"
 	"github.com/spf13/cobra"
 )
 
@@ -35,8 +35,8 @@ func NewGetFunctionCmd() *cobra.Command {
 			}
 			defer conn.Close()
 
-			client := functionspb.NewFunctionsClient(conn)
-			fn, err := client.GetFunction(ctx, &functionspb.GetFunctionRequest{
+			client := faaspb.NewFunctionsClient(conn)
+			fn, err := client.GetFunction(ctx, &faaspb.GetFunctionRequest{
 				Name: functionName,
 			})
 			if err != nil {

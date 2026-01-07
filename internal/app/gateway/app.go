@@ -7,9 +7,10 @@ import (
 	grpcsrv "github.com/10Narratives/faas/internal/app/components/grpc/server"
 	natscomp "github.com/10Narratives/faas/internal/app/components/nats"
 	funcrepo "github.com/10Narratives/faas/internal/repositories/functions"
+	taskrepo "github.com/10Narratives/faas/internal/repositories/tasks"
 	funcsrv "github.com/10Narratives/faas/internal/services/functions"
+	tasksrv "github.com/10Narratives/faas/internal/services/tasks"
 	funcapi "github.com/10Narratives/faas/internal/transport/grpc/api/functions"
-	opapi "github.com/10Narratives/faas/internal/transport/grpc/api/operations"
 	healthapi "github.com/10Narratives/faas/internal/transport/grpc/dev/health"
 	reflectapi "github.com/10Narratives/faas/internal/transport/grpc/dev/reflect"
 
@@ -43,6 +44,13 @@ func NewApp(cfg *Config, log *zap.Logger) (*App, error) {
 		return nil, fmt.Errorf("cannot create jet stream: %w", err)
 	}
 
+	taskRepo, err := taskrepo.NewRepository(context.Background(), js, "tasks")
+	if err != nil {
+		return nil, fmt.Errorf("cannot create task repo: %w", err)
+	}
+
+	taskService := tasksrv.NewService(taskRepo)
+
 	funcMetaRepo, err := funcrepo.NewMetadataRepository(context.Background(), js, "functions-meta")
 	if err != nil {
 		return nil, fmt.Errorf("cannot create functions meta repo: %w", err)
@@ -53,7 +61,7 @@ func NewApp(cfg *Config, log *zap.Logger) (*App, error) {
 		return nil, fmt.Errorf("cannot create functions object repo: %w", err)
 	}
 
-	funcService := funcsrv.NewService(funcMetaRepo, funcObjRepo, nil)
+	funcService := funcsrv.NewService(funcMetaRepo, funcObjRepo, taskService)
 
 	grpcServer := grpcsrv.NewComponent(cfg.Server.Grpc.Address,
 		grpcsrv.WithServerOptions(
@@ -71,7 +79,6 @@ func NewApp(cfg *Config, log *zap.Logger) (*App, error) {
 		grpcsrv.WithServiceRegistration(
 			healthapi.NewRegistration(),
 			reflectapi.NewRegistration(),
-			opapi.NewRegistration(nil),
 			funcapi.NewRegistration(funcService),
 		),
 	)
