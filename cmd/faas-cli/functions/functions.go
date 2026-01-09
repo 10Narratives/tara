@@ -15,6 +15,7 @@ func NewFunctionsGroup() *cobra.Command {
 		NewGetFunctionCmd(),
 		NewListFunctionsCmd(),
 		NewDeleteFunctionCmd(),
+		NewExecuteFunctionCmd(),
 	)
 
 	return cmd

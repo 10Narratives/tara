@@ -11,6 +11,7 @@ import (
 	funcsrv "github.com/10Narratives/faas/internal/services/functions"
 	tasksrv "github.com/10Narratives/faas/internal/services/tasks"
 	funcapi "github.com/10Narratives/faas/internal/transport/grpc/api/functions"
+	taskapi "github.com/10Narratives/faas/internal/transport/grpc/api/tasks"
 	healthapi "github.com/10Narratives/faas/internal/transport/grpc/dev/health"
 	reflectapi "github.com/10Narratives/faas/internal/transport/grpc/dev/reflect"
 
@@ -49,7 +50,9 @@ func NewApp(cfg *Config, log *zap.Logger) (*App, error) {
 		return nil, fmt.Errorf("cannot create task repo: %w", err)
 	}
 
-	taskService := tasksrv.NewService(taskRepo)
+	taskPub := taskrepo.NewPublisher(js)
+
+	taskService := tasksrv.NewService(taskRepo, taskPub)
 
 	funcMetaRepo, err := funcrepo.NewMetadataRepository(context.Background(), js, "functions-meta")
 	if err != nil {
@@ -79,6 +82,7 @@ func NewApp(cfg *Config, log *zap.Logger) (*App, error) {
 		grpcsrv.WithServiceRegistration(
 			healthapi.NewRegistration(),
 			reflectapi.NewRegistration(),
+			taskapi.NewRegistration(taskService),
 			funcapi.NewRegistration(funcService),
 		),
 	)
