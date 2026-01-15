@@ -3,6 +3,7 @@
   "subjects": [
     "task.*"
   ],
+  "retention": "workqueue",
   "storage": "file",
   "num_replicas": 1,
   "max_bytes": 8589934592

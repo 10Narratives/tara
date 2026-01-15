@@ -3,45 +3,43 @@ package agentapp
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"os"
 	"time"
 
-	natscomp "github.com/10Narratives/faas/internal/app/components/nats"
-	funcrepo "github.com/10Narratives/faas/internal/repositories/functions"
-	taskrepo "github.com/10Narratives/faas/internal/repositories/tasks"
+	runtime "github.com/10Narratives/faas/internal/runtime"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"golang.org/x/sync/errgroup"
 )
 
 type App struct {
-	cfg *Config
-	log *zap.Logger
-
-	unifiedStorage *natscomp.UnifiedStorage
-
-	taskRepo *taskrepo.Repository
-
-	funcMeta *funcrepo.MetadataRepository
-	funcObj  *funcrepo.ObjectRepository
+	cfg     *Config
+	log     *zap.Logger
+	manager *runtime.Manager
 }
 
 func NewApp(cfg *Config, log *zap.Logger) (*App, error) {
-	unifiedStorage, err := natscomp.NewUnifiedStorage(cfg.UnifiedStorage.URL)
-	if err != nil {
-		return nil, fmt.Errorf("cannot connect to unified storage: %w", err)
+	managerCfg := &runtime.ManagerConfig{
+		MaxInstances:     10,
+		InstanceLifetime: 5 * time.Minute,
+		ColdStart:        2 * time.Second,
+		NATSURL:          cfg.UnifiedStorage.URL,
+		PodName:          os.Getenv("POD_NAME"), // Docker ENV
+		MaxAckPending:    2,
+		AckWait:          10 * time.Minute,
+		MaxDeliver:       5,
+		Backoff:          []time.Duration{30 * time.Second, 1 * time.Minute, 2 * time.Minute},
 	}
-	log.Info("connection to unified storage established")
-
-	taskRepo := taskrepo.NewRepository(unifiedStorage.TaskMeta)
-	funcMetaRepo := funcrepo.NewMetadataRepository(unifiedStorage.FuncMeta)
-	funcObjRepo := funcrepo.NewObjectRepository(unifiedStorage.FuncObj)
+	manager, err := runtime.NewManager(log, managerCfg)
+	if err != nil {
+		return nil, fmt.Errorf("create runtime manager: %w", err)
+	}
 
 	return &App{
-		cfg:            cfg,
-		log:            log,
-		unifiedStorage: unifiedStorage,
-		taskRepo:       taskRepo,
-		funcMeta:       funcMetaRepo,
-		funcObj:        funcObjRepo,
+		cfg:     cfg,
+		log:     log,
+		manager: manager,
 	}, nil
 }
 
@@ -49,18 +47,13 @@ func (a *App) Startup(ctx context.Context) error {
 	errGroup, ctx := errgroup.WithContext(ctx)
 
 	errGroup.Go(func() error {
-		a.log.Info("agent online")
-		ticker := time.NewTicker(1 * time.Minute)
-		defer ticker.Stop()
+		http.Handle("/metrics", promhttp.Handler())
+		return http.ListenAndServe(":8080", nil)
+	})
 
-		select {
-		case <-ticker.C:
-			a.log.Info("work done")
-			return nil
-		case <-ctx.Done():
-			a.log.Info("work canceled")
-			return nil
-		}
+	errGroup.Go(func() error {
+		a.log.Info("start function manager")
+		return a.manager.Run(ctx)
 	})
 
 	return errGroup.Wait()
@@ -70,10 +63,11 @@ func (a *App) Shutdown(ctx context.Context) error {
 	errGroup, ctx := errgroup.WithContext(ctx)
 
 	errGroup.Go(func() error {
-		a.log.Debug("closing connection to unified storage")
-		defer a.log.Info("connection to task unified storage")
-
-		a.unifiedStorage.Conn.Close()
+		if a.manager != nil {
+			if err := a.manager.Stop(ctx); err != nil {
+				a.log.Warn("manager stop failed", zap.Error(err))
+			}
+		}
 		return nil
 	})
 
